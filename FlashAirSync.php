@@ -20,7 +20,7 @@ $options = getopt('', ['flashairip::', 'syncfrom::', 'syncto::', 'timezone::', '
 
 $FlashAirIP = $options['flashairip']; // IP address of the flashair card, if the card is running in the default host mode you could just use the hostname ("flashair")
 $SyncFrom = $options['syncfrom'];         // Path on the sdcard to copy from (recursive)
-$SyncTo = ($options['syncto'] === getenv('HOME') . '/Photos') 
+$SyncTo = ($options['syncto'] === getenv('HOME') . '/Photos')
     ? $options['syncto'].'/'.$options['flashairip']
     : $options['syncto']
 ; // Full path where it will copy to (recursive)
@@ -106,8 +106,11 @@ function sync_for_file($From, $To, $Time)
         command("upload.cgi", array('DEL' => $From));
         unlink(dirname($To) . '/.Manifest/' . basename($To));
     } elseif (!file_exists($To)) {
-        if (copy("http://{$FlashAirIP}" . $From, $To)) {
+        $Temp = tempnam("/tmp","flashair_");
+
+        if (copy("http://{$FlashAirIP}" . $From, $Temp)) {
             echo "Copy {$From}\n";
+            rename($Temp, $To);
             touch($To, $Time);
             // Add it to the manifest
             touch(dirname($To) . '/.Manifest/' . basename($To), $Time);
